@@ -20,11 +20,12 @@ CREATE TABLE IF NOT EXISTS public.admins (user_id uuid NOT NULL, role text DEFAU
 CREATE TABLE IF NOT EXISTS public.api_rate_limits (bucket text NOT NULL, window_started_at timestamp with time zone DEFAULT now() NOT NULL, hit_count integer DEFAULT 0 NOT NULL);
 CREATE TABLE IF NOT EXISTS public.business_settings (id integer DEFAULT 1 NOT NULL, business_name text DEFAULT 'King Burger'::text NOT NULL, whatsapp_phone text, contact_email text, logo_url text, is_open boolean DEFAULT false NOT NULL, minimum_order numeric(12,2) DEFAULT 0 NOT NULL, currency text DEFAULT 'ARS'::text NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL, transfer_alias text, transfer_holder text, transfer_cbu text, delivery_only boolean DEFAULT true NOT NULL);
 CREATE TABLE IF NOT EXISTS public.categories (id uuid DEFAULT gen_random_uuid() NOT NULL, name text NOT NULL, slug text NOT NULL, description text, image_url text, is_active boolean DEFAULT true NOT NULL, sort_order integer DEFAULT 0 NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
+CREATE TABLE IF NOT EXISTS public.delivery_drivers (user_id uuid NOT NULL, display_name text NOT NULL, phone text, is_active boolean DEFAULT true NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
 CREATE TABLE IF NOT EXISTS public.delivery_zones (id uuid DEFAULT gen_random_uuid() NOT NULL, name text NOT NULL, delivery_fee numeric(12,2) DEFAULT 0 NOT NULL, estimated_minutes integer DEFAULT 45 NOT NULL, is_active boolean DEFAULT true NOT NULL, sort_order integer DEFAULT 0 NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
 CREATE TABLE IF NOT EXISTS public.order_item_addons (id uuid DEFAULT gen_random_uuid() NOT NULL, order_item_id uuid NOT NULL, addon_id uuid, addon_name text NOT NULL, unit_price numeric(12,2) DEFAULT 0 NOT NULL, quantity integer DEFAULT 1 NOT NULL);
 CREATE TABLE IF NOT EXISTS public.order_items (id uuid DEFAULT gen_random_uuid() NOT NULL, order_id uuid NOT NULL, product_id uuid, product_name text NOT NULL, unit_price numeric(12,2) NOT NULL, quantity integer NOT NULL, subtotal numeric(12,2) NOT NULL, notes text);
 CREATE TABLE IF NOT EXISTS public.order_status_history (id uuid DEFAULT gen_random_uuid() NOT NULL, order_id uuid NOT NULL, previous_status text, new_status text NOT NULL, changed_by uuid, note text, created_at timestamp with time zone DEFAULT now() NOT NULL);
-CREATE TABLE IF NOT EXISTS public.orders (id uuid DEFAULT gen_random_uuid() NOT NULL, order_number bigint GENERATED ALWAYS AS IDENTITY NOT NULL, tracking_token_hash text NOT NULL, customer_name text NOT NULL, customer_phone text NOT NULL, delivery_address text NOT NULL, neighborhood text NOT NULL, address_reference text, delivery_zone_id uuid, subtotal numeric(12,2) NOT NULL, delivery_fee numeric(12,2) DEFAULT 0 NOT NULL, total numeric(12,2) NOT NULL, payment_method text NOT NULL, payment_status text DEFAULT 'pending'::text NOT NULL, order_status text DEFAULT 'pending'::text NOT NULL, customer_notes text, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL, idempotency_key text, customer_email text);
+CREATE TABLE IF NOT EXISTS public.orders (id uuid DEFAULT gen_random_uuid() NOT NULL, order_number bigint GENERATED ALWAYS AS IDENTITY NOT NULL, tracking_token_hash text NOT NULL, customer_name text NOT NULL, customer_phone text NOT NULL, delivery_address text NOT NULL, neighborhood text NOT NULL, address_reference text, delivery_zone_id uuid, subtotal numeric(12,2) NOT NULL, delivery_fee numeric(12,2) DEFAULT 0 NOT NULL, total numeric(12,2) NOT NULL, payment_method text NOT NULL, payment_status text DEFAULT 'pending'::text NOT NULL, order_status text DEFAULT 'pending'::text NOT NULL, customer_notes text, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL, idempotency_key text, customer_email text, delivery_latitude double precision, delivery_longitude double precision, driver_location_latitude double precision, driver_location_longitude double precision, driver_location_accuracy double precision, driver_location_updated_at timestamp with time zone, assigned_driver_id uuid, delivery_started_at timestamp with time zone, delivered_at timestamp with time zone);
 CREATE TABLE IF NOT EXISTS public.product_addon_options (id uuid DEFAULT gen_random_uuid() NOT NULL, addon_id uuid NOT NULL, product_id uuid NOT NULL, option_name text NOT NULL, price numeric(12,2) DEFAULT 0 NOT NULL, is_available boolean DEFAULT true NOT NULL, sort_order integer DEFAULT 0 NOT NULL);
 CREATE TABLE IF NOT EXISTS public.product_addons (id uuid DEFAULT gen_random_uuid() NOT NULL, name text NOT NULL, description text, is_active boolean DEFAULT true NOT NULL, is_required boolean DEFAULT false NOT NULL, min_select integer DEFAULT 0 NOT NULL, max_select integer DEFAULT 1 NOT NULL, sort_order integer DEFAULT 0 NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
 CREATE TABLE IF NOT EXISTS public.products (id uuid DEFAULT gen_random_uuid() NOT NULL, category_id uuid, name text NOT NULL, description text, image_url text, price numeric(12,2) NOT NULL, is_available boolean DEFAULT true NOT NULL, is_featured boolean DEFAULT false NOT NULL, sort_order integer DEFAULT 0 NOT NULL, created_at timestamp with time zone DEFAULT now() NOT NULL, updated_at timestamp with time zone DEFAULT now() NOT NULL);
@@ -43,6 +44,8 @@ ALTER TABLE ONLY public.categories ADD CONSTRAINT categories_slug_key UNIQUE (sl
 ALTER TABLE ONLY public.delivery_zones ADD CONSTRAINT delivery_zones_delivery_fee_check CHECK ((delivery_fee >= (0)::numeric));
 ALTER TABLE ONLY public.delivery_zones ADD CONSTRAINT delivery_zones_estimated_minutes_check CHECK ((estimated_minutes > 0));
 ALTER TABLE ONLY public.delivery_zones ADD CONSTRAINT delivery_zones_name_key UNIQUE (name);
+ALTER TABLE ONLY public.delivery_drivers ADD CONSTRAINT delivery_drivers_pkey PRIMARY KEY (user_id);
+ALTER TABLE ONLY public.delivery_drivers ADD CONSTRAINT delivery_drivers_display_name_check CHECK (length(btrim(display_name)) BETWEEN 1 AND 100);
 ALTER TABLE ONLY public.delivery_zones ADD CONSTRAINT delivery_zones_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.order_item_addons ADD CONSTRAINT order_item_addons_pkey PRIMARY KEY (id);
 ALTER TABLE ONLY public.order_item_addons ADD CONSTRAINT order_item_addons_quantity_check CHECK ((quantity > 0));
@@ -58,6 +61,11 @@ ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_order_status_check CHECK ((
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_payment_method_check CHECK ((payment_method = ANY (ARRAY['cash'::text, 'transfer'::text])));
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_payment_status_check CHECK ((payment_status = ANY (ARRAY['pending'::text, 'paid'::text, 'rejected'::text, 'refunded'::text])));
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_delivery_latitude_check CHECK (delivery_latitude IS NULL OR delivery_latitude BETWEEN -90 AND 90);
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_delivery_longitude_check CHECK (delivery_longitude IS NULL OR delivery_longitude BETWEEN -180 AND 180);
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_driver_location_latitude_check CHECK (driver_location_latitude IS NULL OR driver_location_latitude BETWEEN -90 AND 90);
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_driver_location_longitude_check CHECK (driver_location_longitude IS NULL OR driver_location_longitude BETWEEN -180 AND 180);
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_driver_location_accuracy_check CHECK (driver_location_accuracy IS NULL OR driver_location_accuracy BETWEEN 0 AND 10000);
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_subtotal_check CHECK ((subtotal >= (0)::numeric));
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_total_check CHECK ((total >= (0)::numeric));
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_tracking_token_hash_key UNIQUE (tracking_token_hash);
@@ -77,6 +85,7 @@ ALTER TABLE ONLY public.working_hours ADD CONSTRAINT working_hours_check CHECK (
 ALTER TABLE ONLY public.working_hours ADD CONSTRAINT working_hours_day_of_week_check CHECK (((day_of_week >= 0) AND (day_of_week <= 6)));
 ALTER TABLE ONLY public.working_hours ADD CONSTRAINT working_hours_day_of_week_key UNIQUE (day_of_week);
 ALTER TABLE ONLY public.working_hours ADD CONSTRAINT working_hours_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.delivery_drivers ADD CONSTRAINT delivery_drivers_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE ONLY public.admins ADD CONSTRAINT admins_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE ONLY public.order_item_addons ADD CONSTRAINT order_item_addons_addon_id_fkey FOREIGN KEY (addon_id) REFERENCES product_addons(id) ON DELETE SET NULL;
 ALTER TABLE ONLY public.order_item_addons ADD CONSTRAINT order_item_addons_order_item_id_fkey FOREIGN KEY (order_item_id) REFERENCES order_items(id) ON DELETE CASCADE;
@@ -84,6 +93,7 @@ ALTER TABLE ONLY public.order_items ADD CONSTRAINT order_items_order_id_fkey FOR
 ALTER TABLE ONLY public.order_items ADD CONSTRAINT order_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL;
 ALTER TABLE ONLY public.order_status_history ADD CONSTRAINT order_status_history_changed_by_fkey FOREIGN KEY (changed_by) REFERENCES auth.users(id) ON DELETE SET NULL;
 ALTER TABLE ONLY public.order_status_history ADD CONSTRAINT order_status_history_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_assigned_driver_id_fkey FOREIGN KEY (assigned_driver_id) REFERENCES public.delivery_drivers(user_id) ON DELETE SET NULL;
 ALTER TABLE ONLY public.orders ADD CONSTRAINT orders_delivery_zone_id_fkey FOREIGN KEY (delivery_zone_id) REFERENCES delivery_zones(id) ON DELETE SET NULL;
 ALTER TABLE ONLY public.product_addon_options ADD CONSTRAINT product_addon_options_addon_id_fkey FOREIGN KEY (addon_id) REFERENCES product_addons(id) ON DELETE CASCADE;
 ALTER TABLE ONLY public.product_addon_options ADD CONSTRAINT product_addon_options_product_id_fkey FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE;
@@ -91,6 +101,8 @@ ALTER TABLE ONLY public.products ADD CONSTRAINT products_category_id_fkey FOREIG
 
 CREATE INDEX order_item_addons_addon_id_idx ON public.order_item_addons USING btree (addon_id);
 CREATE INDEX order_item_addons_order_item_id_idx ON public.order_item_addons USING btree (order_item_id);
+CREATE INDEX orders_assigned_driver_status_idx ON public.orders USING btree (assigned_driver_id, order_status, created_at DESC);
+CREATE INDEX delivery_drivers_active_idx ON public.delivery_drivers USING btree (is_active, display_name);
 CREATE INDEX order_items_order_idx ON public.order_items USING btree (order_id);
 CREATE INDEX order_items_product_id_idx ON public.order_items USING btree (product_id);
 CREATE INDEX order_history_order_idx ON public.order_status_history USING btree (order_id, created_at);
@@ -354,6 +366,9 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE pub
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.promotions TO service_role;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.working_hours TO service_role;
 
+ALTER TABLE public.delivery_drivers ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.delivery_drivers FROM anon, authenticated;
+GRANT ALL ON TABLE public.delivery_drivers TO service_role;
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.api_rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.business_settings ENABLE ROW LEVEL SECURITY;
