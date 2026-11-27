@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090b0a"><title>Seguir pedido | King Burger</title>
+<style>
+:root{--bg:#090b0a;--panel:#111612;--line:#2b352e;--text:#f4f7f2;--muted:#a4afa5;--green:#a7f432;--gold:#ffc94a}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -15%,#28451c66,transparent 45%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{width:min(760px,calc(100% - 28px));margin:auto}.top{padding:24px 0}.brand{color:var(--text);text-decoration:none;font-weight:950;letter-spacing:-.4px;display:flex;align-items:center;gap:10px}.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--green);color:#10160a}.card{margin:35px auto;padding:clamp(20px,5vw,34px);background:linear-gradient(155deg,#171e18,#0f130f);border:1px solid var(--line);border-radius:25px;box-shadow:0 20px 55px #0008}.eyebrow{font-size:10px;letter-spacing:2px;font-weight:950;color:var(--green);text-transform:uppercase}.card h1{font-size:clamp(30px,7vw,46px);letter-spacing:-1.8px;margin:8px 0}.muted{color:var(--muted);font-size:13px;line-height:1.6}.form{display:flex;gap:9px;margin-top:22px}.form input{min-width:0;flex:1;background:#090d0a;color:white;border:1px solid #39453b;border-radius:12px;padding:13px;outline:none}.form input:focus{border-color:var(--green)}button,.btn{border:0;border-radius:12px;background:var(--green);color:#11170b;padding:13px 17px;font-weight:950;text-decoration:none;display:inline-block}.result{display:none;margin-top:25px}.result.show{display:block}.topline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:20px}.pill{background:#29351f;color:var(--green);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900}.progress{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:25px 0}.progress span{height:6px;border-radius:8px;background:#2a332c}.progress span.done{background:var(--green);box-shadow:0 0 12px #a7f43266}.timeline{border-left:1px solid #475544;margin:22px 0 0 5px;padding-left:20px}.event{position:relative;padding:0 0 19px}.event:before{content:"";position:absolute;left:-25px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #a7f43218}.event b{font-size:13px}.event small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.item{display:flex;justify-content:space-between;gap:15px;padding:11px 0;border-bottom:1px solid #ffffff12;font-size:12px}.totals{margin-top:18px}.totals div{display:flex;justify-content:space-between;margin:8px 0;color:var(--muted);font-size:13px}.totals .total{color:var(--text);font-size:20px;font-weight:950}.error{display:none;background:#ff676715;border:1px solid #ff676744;border-radius:12px;padding:12px;color:#ffd1d1;font-size:12px;margin-top:15px}.error.show{display:block}.footer{text-align:center;padding:20px;color:var(--muted);font-size:11px}.footer a{color:var(--green);text-decoration:none}@media(max-width:500px){.form{flex-direction:column}.form button{width:100%}.progress{grid-template-columns:repeat(3,1fr);row-gap:9px}}
+</style>
+</head>
+<body>
+<header class="shell top"><a href="index.html" class="brand"><span class="mark">K</span>KING BURGER</a></header>
+<main class="shell"><section class="card"><div class="eyebrow">Tu pedido, en tiempo real</div><h1>SEGUÍ TU PEDIDO.</h1><p class="muted">Ingresá el código privado que recibiste al confirmar la compra. Solo quien tenga ese enlace puede consultar el estado del pedido.</p><form class="form" id="trackForm"><input id="token" name="token" autocomplete="off" placeholder="Pegá tu código privado" required><button type="submit" id="trackButton">Consultar</button></form><div class="error" id="error"></div><div class="result" id="result"><div class="topline"><div><span class="eyebrow">Pedido</span><h2 id="orderNo" style="margin:5px 0">#—</h2></div><span class="pill" id="orderStatus">Pendiente</span></div><div class="progress" id="progress"></div><p class="muted" id="created"></p><h3 style="font-size:14px;margin:25px 0 8px">Detalle</h3><div id="items"></div><div class="totals"><div><span>Subtotal</span><b id="subtotal"></b></div><div><span>Delivery</span><b id="delivery"></b></div><div class="total"><span>Total</span><strong id="total"></strong></div></div><h3 style="font-size:14px;margin:28px 0 8px">Historial</h3><div class="timeline" id="history"></div></div></section></main>
+<footer class="footer">© <span id="year"></span> King Burger · <a href="index.html">Volver a la tienda</a></footer>
+<script>
+(() => {
+  const API = "https://fruuhaoszcdrknrmrpgh.supabase.co/functions/v1/store-api";
+  const KEY = "sb_publishable_366PKsbArc-MrcTqVL-n-w_CwDqOSBz";
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const money = (n) => new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n||0));
+  const labels = {pending:"Recibido",confirmed:"Confirmado",preparing:"En preparación",ready:"Listo",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado"};
+  const sequence = ["pending","confirmed","preparing","ready","on_the_way","delivered"];
+  async function load(token) {
+    $("#error").classList.remove("show"); $("#result").classList.remove("show");
+    const button = $("#trackButton"); button.disabled = true; button.textContent = "Consultando…";
+    try {
+      const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({action:"tracking",tracking_token:token})});
+      const data = await res.json().catch(()=>({})); if(!res.ok) throw new Error(data.error || "No encontramos ese pedido.");
+      const o=data.order; $("#orderNo").textContent = `#${o.order_number}`; $("#orderStatus").textContent = labels[o.order_status] || o.order_status;
+      const position=sequence.indexOf(o.order_status); $("#progress").innerHTML = (o.order_status === "cancelled" ? sequence.slice(0,1) : sequence).map((s,i)=>`<span class="${position>=i && position>=0 ? "done" : ""}"></span>`).join("");
+      $("#created").textContent = `Creado el ${new Date(o.created_at).toLocaleString("es-AR",{dateStyle:"medium",timeStyle:"short"})}. Pago: ${o.payment_method === "transfer" ? "Transferencia" : "Efectivo"} · ${o.payment_status === "paid" ? "Pago acreditado" : "Pago pendiente"}.`;
+      $("#items").innerHTML=(o.items||[]).map(i=>`<div class="item"><span><b>${Number(i.quantity)} × ${esc(i.product_name)}</b>${(i.order_item_addons||[]).length ? `<small style="display:block;color:#9faa9f;margin-top:4px">${i.order_item_addons.map(a=>esc(a.addon_name)).join(", ")}</small>`:""}</span><b>${money(i.subtotal)}</b></div>`).join("");
+      $("#subtotal").textContent=money(o.subtotal); $("#delivery").textContent=money(o.delivery_fee); $("#total").textContent=money(o.total);
+      const history=(o.history||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+      $("#history").innerHTML=history.length ? history.map(h=>`<div class="event"><b>${esc(labels[h.new_status]||h.new_status)}</b><small>${new Date(h.created_at).toLocaleString("es-AR",{dateStyle:"medium",timeStyle:"short"})}${h.note ? ` · ${esc(h.note)}`:""}</small></div>`).join("") : '<p class="muted">Todavía no hay novedades.</p>';
+      $("#result").classList.add("show");
+    } catch(e) { $("#error").textContent=e.message; $("#error").classList.add("show"); }
+    finally { button.disabled=false; button.textContent="Consultar"; }
+  }
+  $("#trackForm").addEventListener("submit",e=>{e.preventDefault();const t=$("#token").value.trim();if(t)load(t);});
+  $("#year").textContent=new Date().getFullYear();
+  const query=new URLSearchParams(location.search).get("token"); if(query){$("#token").value=query;load(query);}
+})();
+</script>
+</body></html>
