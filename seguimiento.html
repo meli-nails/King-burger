@@ -5,23 +5,94 @@
 <style>
 :root{--bg:#090b0a;--panel:#111612;--line:#2b352e;--text:#f4f7f2;--muted:#a4afa5;--green:#a7f432;--gold:#ffc94a}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -15%,#28451c66,transparent 45%),var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}.shell{width:min(760px,calc(100% - 28px));margin:auto}.top{padding:24px 0}.brand{color:var(--text);text-decoration:none;font-weight:950;letter-spacing:-.4px;display:flex;align-items:center;gap:10px}.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--green);color:#10160a}.card{margin:35px auto;padding:clamp(20px,5vw,34px);background:linear-gradient(155deg,#171e18,#0f130f);border:1px solid var(--line);border-radius:25px;box-shadow:0 20px 55px #0008}.eyebrow{font-size:10px;letter-spacing:2px;font-weight:950;color:var(--green);text-transform:uppercase}.card h1{font-size:clamp(30px,7vw,46px);letter-spacing:-1.8px;margin:8px 0}.muted{color:var(--muted);font-size:13px;line-height:1.6}.form{display:flex;gap:9px;margin-top:22px}.form input{min-width:0;flex:1;background:#090d0a;color:white;border:1px solid #39453b;border-radius:12px;padding:13px;outline:none}.form input:focus{border-color:var(--green)}button,.btn{border:0;border-radius:12px;background:var(--green);color:#11170b;padding:13px 17px;font-weight:950;text-decoration:none;display:inline-block}.result{display:none;margin-top:25px}.result.show{display:block}.topline{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:20px}.pill{background:#29351f;color:var(--green);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:900}.progress{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:25px 0}.progress span{height:6px;border-radius:8px;background:#2a332c}.progress span.done{background:var(--green);box-shadow:0 0 12px #a7f43266}.timeline{border-left:1px solid #475544;margin:22px 0 0 5px;padding-left:20px}.event{position:relative;padding:0 0 19px}.event:before{content:"";position:absolute;left:-25px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #a7f43218}.event b{font-size:13px}.event small{display:block;color:var(--muted);font-size:11px;margin-top:4px}.item{display:flex;justify-content:space-between;gap:15px;padding:11px 0;border-bottom:1px solid #ffffff12;font-size:12px}.totals{margin-top:18px}.totals div{display:flex;justify-content:space-between;margin:8px 0;color:var(--muted);font-size:13px}.totals .total{color:var(--text);font-size:20px;font-weight:950}.error{display:none;background:#ff676715;border:1px solid #ff676744;border-radius:12px;padding:12px;color:#ffd1d1;font-size:12px;margin-top:15px}.error.show{display:block}.footer{text-align:center;padding:20px;color:var(--muted);font-size:11px}.footer a{color:var(--green);text-decoration:none}@media(max-width:500px){.form{flex-direction:column}.form button{width:100%}.progress{grid-template-columns:repeat(3,1fr);row-gap:9px}}
 </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 </head>
 <body>
 <header class="shell top"><a href="index.html" class="brand"><span class="mark">K</span>KING BURGER</a></header>
-<main class="shell"><section class="card"><div class="eyebrow">Tu pedido, en tiempo real</div><h1>SEGUÍ TU PEDIDO.</h1><p class="muted">Ingresá el código privado que recibiste al confirmar la compra. Solo quien tenga ese enlace puede consultar el estado del pedido.</p><form class="form" id="trackForm"><input id="token" name="token" autocomplete="off" placeholder="Pegá tu código privado" required><button type="submit" id="trackButton">Consultar</button></form><div class="error" id="error"></div><div class="result" id="result"><div class="topline"><div><span class="eyebrow">Pedido</span><h2 id="orderNo" style="margin:5px 0">#—</h2></div><span class="pill" id="orderStatus">Pendiente</span></div><div class="progress" id="progress"></div><p class="muted" id="created"></p><h3 style="font-size:14px;margin:25px 0 8px">Detalle</h3><div id="items"></div><div class="totals"><div><span>Subtotal</span><b id="subtotal"></b></div><div><span>Delivery</span><b id="delivery"></b></div><div class="total"><span>Total</span><strong id="total"></strong></div></div><h3 style="font-size:14px;margin:28px 0 8px">Historial</h3><div class="timeline" id="history"></div></div></section></main>
+<main class="shell"><section class="card"><div class="eyebrow">Tu pedido, en tiempo real</div><h1>SEGUÍ TU PEDIDO.</h1><p class="muted">Ingresá el código privado que recibiste al confirmar la compra. Solo quien tenga ese enlace puede consultar el estado del pedido.</p><form class="form" id="trackForm"><input id="token" name="token" autocomplete="off" placeholder="Pegá tu código privado" required><button type="submit" id="trackButton">Consultar</button></form><div class="error" id="error"></div><div class="result" id="result"><div class="topline"><div><span class="eyebrow">Pedido</span><h2 id="orderNo" style="margin:5px 0">#—</h2></div><span class="pill" id="orderStatus">Pendiente</span></div><div class="progress" id="progress"></div><p class="muted" id="created"></p><h3 style="font-size:14px;margin:25px 0 8px">Detalle</h3><div id="items"></div><div class="totals"><div><span>Subtotal</span><b id="subtotal"></b></div><div><span>Delivery</span><b id="delivery"></b></div><div class="total"><span>Total</span><strong id="total"></strong></div></div>
+      <section id="liveTracking" style="display:none;margin-top:25px">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+          <div><h3 style="font-size:16px;margin:0 0 5px">Tu pedido está en camino</h3><p class="muted" id="courierEta" style="margin:0">Esperando ubicación del repartidor…</p></div>
+          <span class="pill" id="courierLiveBadge">GPS activo</span>
+        </div>
+        <div id="trackingMap" style="height:300px;margin-top:13px;border:1px solid var(--line);border-radius:16px;overflow:hidden"></div>
+        <p class="muted" style="font-size:11px;margin:9px 0 0">La ubicación se actualiza mientras el repartidor comparte su GPS. El tiempo estimado puede variar por el tránsito.</p>
+      </section>
+      <h3 style="font-size:14px;margin:28px 0 8px">Historial</h3><div class="timeline" id="history"></div></div></section></main>
 <footer class="footer">© <span id="year"></span> King Burger · <a href="index.html">Volver a la tienda</a></footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0"></script>
 <script>
 (() => {
   const API = "https://fruuhaoszcdrknrmrpgh.supabase.co/functions/v1/store-api";
   const KEY = "sb_publishable_366PKsbArc-MrcTqVL-n-w_CwDqOSBz";
   const $ = (s) => document.querySelector(s);
+  const SUPABASE_URL = "https://fruuhaoszcdrknrmrpgh.supabase.co";
+  const TRACK_KEY = "sb_publishable_366PKsbArc-MrcTqVL-n-w_CwDqOSBz";
+  let map = null, destinationMarker = null, courierMarker = null, routeLine = null, realtimeClient = null, trackingChannel = null, currentToken = "", routeUpdatedAt = 0;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = (n) => new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n||0));
   const labels = {pending:"Recibido",confirmed:"Confirmado",preparing:"En preparación",ready:"Listo",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado"};
   const sequence = ["pending","confirmed","preparing","ready","on_the_way","delivered"];
-  async function load(token) {
-    $("#error").classList.remove("show"); $("#result").classList.remove("show");
-    const button = $("#trackButton"); button.disabled = true; button.textContent = "Consultando…";
+  function initTrackingMap() {
+    if (!window.L || map) return;
+    map = L.map("trackingMap", {scrollWheelZoom:false}).setView([-26.8241,-65.2226], 13);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains:"abcd", maxZoom:20
+    }).addTo(map);
+  }
+  async function routeBetween(from, to) {
+    const now = Date.now(); if (now - routeUpdatedAt < 25000) return;
+    routeUpdatedAt = now;
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+      const r = await fetch(url); const d = await r.json();
+      if (!r.ok || d.code !== "Ok" || !d.routes?.length) throw new Error("route unavailable");
+      const coordinates = d.routes[0].geometry.coordinates.map(([lng,lat]) => [lat,lng]);
+      if (routeLine) routeLine.setLatLngs(coordinates); else routeLine = L.polyline(coordinates,{color:"#a7f432",weight:5,opacity:.88}).addTo(map);
+      $("#courierEta").textContent = `Aproximadamente ${Math.max(1,Math.ceil(d.routes[0].duration/60))} min restantes · ${(d.routes[0].distance/1000).toFixed(1)} km`;
+    } catch { $("#courierEta").textContent = "El repartidor está en camino. Consultá nuevamente en unos instantes."; }
+  }
+  function updateTrackingMap(o) {
+    const hasDestination = Number.isFinite(Number(o.delivery_latitude)) && Number.isFinite(Number(o.delivery_longitude));
+    const hasCourier = Number.isFinite(Number(o.driver_location_latitude)) && Number.isFinite(Number(o.driver_location_longitude));
+    if (!hasDestination) return;
+    $("#liveTracking").style.display = o.order_status === "on_the_way" || o.order_status === "delivered" ? "block" : "none";
+    if (!$("#liveTracking").style.display || !window.L) return;
+    initTrackingMap();
+    const dest = [Number(o.delivery_latitude), Number(o.delivery_longitude)];
+    if (!destinationMarker) destinationMarker = L.marker(dest).addTo(map).bindPopup("Tu dirección de entrega");
+    else destinationMarker.setLatLng(dest);
+    if (hasCourier) {
+      const courier = [Number(o.driver_location_latitude), Number(o.driver_location_longitude)];
+      if (!courierMarker) courierMarker = L.circleMarker(courier,{radius:9,color:"#fff",weight:2,fillColor:"#ffc94a",fillOpacity:1}).addTo(map).bindPopup("Repartidor");
+      else courierMarker.setLatLng(courier);
+      routeBetween(courier,dest);
+      map.fitBounds(L.latLngBounds([courier,dest]).pad(.25),{maxZoom:16});
+      $("#courierLiveBadge").textContent = o.driver_location_updated_at ? "GPS actualizado" : "Esperando GPS";
+    } else {
+      map.setView(dest,15); $("#courierEta").textContent = "El repartidor todavía no compartió su ubicación.";
+      $("#courierLiveBadge").textContent = "Esperando repartidor";
+    }
+    setTimeout(() => map && map.invalidateSize(),100);
+  }
+  async function subscribeTracking(token, topic) {
+    if (!window.supabase || !topic || trackingChannel) return;
+    realtimeClient = window.supabase.createClient(SUPABASE_URL, TRACK_KEY);
+    trackingChannel = realtimeClient.channel(topic,{config:{private:false}})
+      .on("broadcast",{event:"location"},({payload}) => {
+        if (!payload || !Number.isFinite(Number(payload.latitude)) || !Number.isFinite(Number(payload.longitude))) return;
+        const position = {latitude:payload.latitude,longitude:payload.longitude,updated_at:payload.updated_at};
+        if (courierMarker) courierMarker.setLatLng([Number(position.latitude),Number(position.longitude)]);
+        $("#courierLiveBadge").textContent = "GPS en vivo";
+        const destination = destinationMarker?.getLatLng();
+        if (destination) routeBetween([Number(position.latitude),Number(position.longitude)],[destination.lat,destination.lng]);
+      }).subscribe();
+  }
+  async function load(token, silent = false) {
+    currentToken = token;
+    if (!silent) { $("#error").classList.remove("show"); $("#result").classList.remove("show"); }
+    const button = $("#trackButton"); if (!silent) { button.disabled = true; button.textContent = "Consultando…"; }
     try {
       const res = await fetch(API,{method:"POST",headers:{"Content-Type":"application/json",apikey:KEY},body:JSON.stringify({action:"tracking",tracking_token:token})});
       const data = await res.json().catch(()=>({})); if(!res.ok) throw new Error(data.error || "No encontramos ese pedido.");
@@ -33,8 +104,10 @@
       const history=(o.history||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
       $("#history").innerHTML=history.length ? history.map(h=>`<div class="event"><b>${esc(labels[h.new_status]||h.new_status)}</b><small>${new Date(h.created_at).toLocaleString("es-AR",{dateStyle:"medium",timeStyle:"short"})}${h.note ? ` · ${esc(h.note)}`:""}</small></div>`).join("") : '<p class="muted">Todavía no hay novedades.</p>';
       $("#result").classList.add("show");
+      updateTrackingMap(o);
+      subscribeTracking(token, o.realtime_topic);
     } catch(e) { $("#error").textContent=e.message; $("#error").classList.add("show"); }
-    finally { button.disabled=false; button.textContent="Consultar"; }
+    finally { if (!silent) { button.disabled=false; button.textContent="Consultar"; } }
   }
   $("#trackForm").addEventListener("submit",e=>{e.preventDefault();const t=$("#token").value.trim();if(t)load(t);});
   $("#year").textContent=new Date().getFullYear();
