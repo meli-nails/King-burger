@@ -29,7 +29,7 @@
   const $ = (s) => document.querySelector(s);
   const SUPABASE_URL = "https://fruuhaoszcdrknrmrpgh.supabase.co";
   const TRACK_KEY = "sb_publishable_366PKsbArc-MrcTqVL-n-w_CwDqOSBz";
-  let map = null, destinationMarker = null, courierMarker = null, routeLine = null, realtimeClient = null, trackingChannel = null, currentToken = "", routeUpdatedAt = 0;
+  let map = null, destinationMarker = null, courierMarker = null, routeLine = null, realtimeClient = null, trackingChannel = null, currentToken = "", routeUpdatedAt = 0, pollingTimer = null;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = (n) => new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n||0));
   const labels = {pending:"Recibido",confirmed:"Confirmado",preparing:"En preparación",ready:"Listo",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado"};
@@ -111,6 +111,7 @@
       $("#result").classList.add("show");
       updateTrackingMap(o);
       subscribeTracking(token, o.realtime_topic);
+      if (!pollingTimer) pollingTimer = setInterval(() => { if (currentToken) load(currentToken, true); }, 20000);
     } catch(e) { $("#error").textContent=e.message; $("#error").classList.add("show"); }
     finally { if (!silent) { button.disabled=false; button.textContent="Consultar"; } }
   }
