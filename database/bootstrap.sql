@@ -367,6 +367,7 @@ GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE pub
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE public.working_hours TO service_role;
 
 ALTER TABLE public.delivery_drivers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "deny direct client access to delivery drivers" ON public.delivery_drivers FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 REVOKE ALL ON TABLE public.delivery_drivers FROM anon, authenticated;
 GRANT ALL ON TABLE public.delivery_drivers TO service_role;
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
