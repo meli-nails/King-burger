@@ -6,7 +6,8 @@ let errors = 0;
 
 for (const page of pages) {
   const html = readFileSync(new URL("../" + page, import.meta.url), "utf8");
-  const blocks = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)];
+  const blocks = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+
   if (!blocks.length) {
     console.error("No inline scripts found:", page);
     errors++;
