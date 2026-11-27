@@ -62,6 +62,8 @@
 .order-cta h2{font:clamp(42px,8vw,74px)/.9 'Bangers',cursive;margin:10px 0;color:#fff;text-shadow:3px 3px #446d00}
 .order-cta h2 span{color:var(--green)}.order-cta p{font:italic 600 17px 'Oswald',sans-serif;color:#fff;margin:10px 0 18px}
 .order-cta-art{font-size:clamp(90px,17vw,175px);filter:drop-shadow(0 15px 12px #000)}
+#menu .section-head h2 span{color:var(--green)}
+.hero-art.has-image .burger-emoji{display:none}
 .mobile-bottom-nav{display:none}
 @media(max-width:850px){.nav-links{display:none}.mobile-menu-button{display:grid;place-items:center}.nav{gap:10px}.hero{grid-template-columns:1fr}}
 @media(max-width:560px){
@@ -111,9 +113,9 @@
  .section:not(#menu){padding:25px 0}.how{grid-template-columns:1fr}.how .step{padding:15px}.fields-2{grid-template-columns:1fr}
  .modal{padding:6px;align-items:flex-end}.modal-card{width:100%;max-height:92vh;padding:16px;border-radius:18px 18px 10px 10px}
  .drawer{width:100%;padding:16px 16px 86px;border:0;border-top:2px solid var(--green)}
- .cart-drawer .drawer{height:94%;top:auto;bottom:0;border-radius:22px 22px 0 0}
+ .cart-drawer{z-index:85}.cart-drawer .drawer{height:94%;top:auto;bottom:0;border-radius:22px 22px 0 0}
  .mobile-bottom-nav{position:fixed;z-index:70;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);height:70px;padding:7px 9px max(7px,env(safe-area-inset-bottom));background:#030503f7;border-top:2px solid var(--green);box-shadow:0 -8px 25px #000b;backdrop-filter:blur(12px)}
- .mobile-nav-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#f4f7f0;border:0;background:transparent;font:600 11px 'Oswald',sans-serif;min-width:0}
+ .mobile-nav-link{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:#f4f7f0;border:0;background:transparent;font:600 11px 'Oswald',sans-serif;min-width:0}
  .mobile-nav-link svg{width:24px;height:24px;fill:none;stroke:var(--green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
  .mobile-nav-link.active span{color:var(--green)}.footer{padding-bottom:28px}
 }
@@ -154,12 +156,14 @@
     </section>
 
     <section class="shell section" id="menu">
-      <div class="section-head"><div><div class="eyebrow">Elegí tu próximo favorito</div><h2>EL MENÚ</h2></div><p id="menuStatus" class="loading">Conectando con la cocina…</p></div>
+      <div class="section-head"><div><div class="eyebrow">Elegí tu favorita</div><h2>NUESTRO <span>MENÚ</span></h2></div><p id="menuStatus" class="loading">Conectando con la cocina…</p></div>
       <div class="chips" id="categoryChips"><button class="chip active" data-category="all">Todo</button></div>
       <div class="grid" id="productGrid"><div class="empty"><strong>Estamos preparando la carta.</strong>Los productos aparecerán acá cuando estén cargados por el local.</div></div>
     </section>
 
     <section class="shell trust-strip" aria-label="Beneficios de King Burger"><div class="trust-item"><span>🏍</span><b>Delivery<br>rápido</b></div><div class="trust-item"><span>✹</span><b>Productos<br>de calidad</b></div><div class="trust-item"><span>♜</span><b>Compra<br>segura</b></div><div class="trust-item"><span>◉</span><b>Atención<br>personalizada</b></div></section>
+
+<section class="shell order-cta"><div class="order-cta-copy"><div class="eyebrow">EL REINO DEL SABOR</div><h2>PEDÍ <span>AHORA</span></h2><p>Y disfrutá el mejor sabor en tu casa.</p><a class="primary" href="#menu" style="text-decoration:none">HACÉ TU PEDIDO →</a></div><div class="order-cta-art" aria-hidden="true">🍟</div></section>
 
     <section class="shell section" id="como-pedir">
       <div class="section-head"><div><div class="eyebrow">Simple y rápido</div><h2>¿CÓMO PEDIR?</h2></div></div>
@@ -167,7 +171,7 @@
     </section>
   </main>
 
-  <section class="shell order-cta"><div class="order-cta-copy"><div class="eyebrow">EL REINO DEL SABOR</div><h2>PEDÍ <span>AHORA</span></h2><p>Y disfrutá el mejor sabor en tu casa.</p><a class="primary" href="#menu" style="text-decoration:none">HACÉ TU PEDIDO →</a></div><div class="order-cta-art" aria-hidden="true">🍟</div></section>
+  
 
   <footer class="footer" id="contacto"><div class="shell footer-inner"><span>© <span id="year"></span> King Burger. Todos los derechos reservados.</span><span>Pedidos online · <a href="seguimiento.html">Seguimiento</a> · <a href="admin.html">Administración</a></span></div></footer>
 
