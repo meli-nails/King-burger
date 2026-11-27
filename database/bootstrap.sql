@@ -124,7 +124,7 @@ AS $function$
 declare
   v_order_id uuid; v_order_number bigint; v_existing_hash text;
   v_customer_name text; v_customer_phone text; v_customer_email text;
-  v_address text; v_neighborhood text; v_reference text; v_zone_id uuid;
+  v_address text; v_neighborhood text; v_reference text;
   v_payment_method text; v_notes text;
   v_subtotal numeric(12,2) := 0; v_delivery_fee numeric(12,2) := 0;
   v_total numeric(12,2) := 0; v_minimum numeric(12,2) := 0;
@@ -160,7 +160,7 @@ begin
   v_customer_phone := nullif(btrim(p_payload->>'customer_phone'),'');
   v_customer_email := nullif(lower(btrim(p_payload->>'customer_email')),'');
   v_address := nullif(btrim(p_payload->>'delivery_address'),'');
-  v_neighborhood := nullif(btrim(p_payload->>'neighborhood'),'');
+  v_neighborhood := coalesce(nullif(btrim(p_payload->>'neighborhood'),''),'Sin especificar');
   v_reference := nullif(btrim(p_payload->>'address_reference'),'');
   v_notes := nullif(btrim(p_payload->>'customer_notes'),'');
   v_payment_method := p_payload->>'payment_method';
@@ -168,7 +168,7 @@ begin
   if v_customer_name is null or length(v_customer_name)>100
      or v_customer_phone is null or length(v_customer_phone)>30
      or v_address is null or length(v_address)>220
-     or v_neighborhood is null or length(v_neighborhood)>100 then
+     or length(v_neighborhood)>100 then
     raise exception using errcode = '22023', message = 'missing_customer_details';
   end if;
   if v_customer_email is not null and (length(v_customer_email)>254 or position('@' in v_customer_email)<2) then
@@ -185,22 +185,12 @@ begin
     raise exception using errcode = '22023', message = 'invalid_items_count';
   end if;
 
-  begin
-    v_zone_id := (p_payload->>'delivery_zone_id')::uuid;
-  exception when others then
-    raise exception using errcode = '22023', message = 'invalid_delivery_zone';
-  end;
-
   select s.is_open,s.minimum_order into v_business_open,v_minimum
   from public.business_settings s where s.id=1;
   if not coalesce(v_business_open,false) then
     raise exception using errcode = 'P0001', message = 'business_closed';
   end if;
-  select z.delivery_fee into v_delivery_fee
-  from public.delivery_zones z where z.id=v_zone_id and z.is_active=true;
-  if not found then
-    raise exception using errcode = '22023', message = 'invalid_delivery_zone';
-  end if;
+  v_delivery_fee := 1000;
 
   for v_line in select i.value from jsonb_array_elements(p_payload->'items') as i(value)
   loop
@@ -264,7 +254,7 @@ begin
     delivery_address,neighborhood,address_reference,delivery_zone_id,subtotal,delivery_fee,total,
     payment_method,payment_status,order_status,customer_notes)
   values(p_idempotency_key,p_tracking_token_hash,v_customer_name,v_customer_phone,v_customer_email,
-    v_address,v_neighborhood,v_reference,v_zone_id,v_subtotal,v_delivery_fee,v_total,
+    v_address,v_neighborhood,v_reference,null,v_subtotal,v_delivery_fee,v_total,
     v_payment_method,'pending','pending',v_notes)
   on conflict(idempotency_key) do nothing
   returning id,order_number into v_order_id,v_order_number;
