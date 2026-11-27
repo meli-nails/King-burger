@@ -91,7 +91,7 @@
   <div class="modal" id="checkoutModal"><div class="modal-card"><div class="modal-title"><div><span class="eyebrow">Último paso</span><h2>Datos de entrega</h2></div><button class="close" data-close="checkoutModal">×</button></div><div id="checkoutFormWrap"><div class="notice" id="checkoutNotice">Solo delivery. Elegí tu zona para conocer el costo del envío.</div><form id="checkoutForm">
     <div class="fields-2"><div class="field"><label for="customerName">Nombre y apellido *</label><input id="customerName" required maxlength="100" autocomplete="name"></div><div class="field"><label for="customerPhone">WhatsApp / Teléfono *</label><input id="customerPhone" required maxlength="30" autocomplete="tel" placeholder="381..." inputmode="tel"></div></div>
     <div class="field"><label for="customerEmail">Correo electrónico (opcional)</label><input id="customerEmail" type="email" maxlength="254" autocomplete="email" placeholder="tu@email.com"></div>
-    <div class="fields-2"><div class="field"><label for="deliveryAddress">Dirección y altura *</label><input id="deliveryAddress" required maxlength="220" autocomplete="street-address"></div><div class="field"><label for="neighborhood">Barrio / Zona *</label><input id="neighborhood" required maxlength="100" placeholder="Tu barrio"></div></div>
+    <div class="field"><label for="deliveryAddress">Dirección y altura *</label><input id="deliveryAddress" required maxlength="220" autocomplete="street-address" placeholder="Calle, número y localidad"></div>
 
     <div class="field">
       <label>Ubicación exacta de entrega *</label>
@@ -258,7 +258,7 @@
         localStorage.setItem("kb_pending_order", JSON.stringify(pending));
         const payload = {
           customer_name: $("#customerName").value.trim(), customer_phone: $("#customerPhone").value.trim(), customer_email: $("#customerEmail").value.trim() || null,
-          delivery_address: $("#deliveryAddress").value.trim(), neighborhood: $("#neighborhood").value.trim(), address_reference: $("#addressReference").value.trim() || null,
+          delivery_address: $("#deliveryAddress").value.trim(), address_reference: $("#addressReference").value.trim() || null,
           delivery_latitude: state.deliveryPoint.latitude, delivery_longitude: state.deliveryPoint.longitude, delivery_location_accuracy: state.deliveryPoint.accuracy, payment_method: document.querySelector('input[name="paymentMethod"]:checked')?.value || "cash", customer_notes: $("#customerNotes").value.trim() || null,
           items: state.cart.map((item) => ({ product_id: item.productId, product_name: item.name, quantity: item.quantity, notes: item.notes || null, addons: item.addons })),
         };
