@@ -18,6 +18,7 @@ Proyecto independiente. Frontend estático en HTML, CSS y JavaScript embebidos; 
 - `supabase/functions/admin-api/index.ts`: autenticación administrativa, dashboard, pedidos, productos, categorías, zonas y configuración.
 - `supabase/functions/addon-api/index.ts`: grupos y opciones de adicionales.
 - `supabase/config.toml`: configuración de Supabase CLI.
+- Supabase Storage bucket público `product-images`: el panel permite subir fotos JPG/PNG/WebP/AVIF hasta 5 MB; la lectura de imágenes es pública y las cargas requieren una sesión de administrador activo.
 - `database/bootstrap.sql`: snapshot SQL para reconstruir el esquema en un proyecto Supabase NUEVO.
 - `database/link-owner.sql`: vinculación idempotente de la cuenta propietaria.
 - `scripts/check-syntax.mjs`: validación de sintaxis JavaScript de los tres HTML.
@@ -49,9 +50,14 @@ Los HTML contienen solo la clave pública `sb_publishable_...`. Las claves secre
 3. En Productos, cargar el menú real, precios, descripciones e imágenes.
 4. En Zonas de delivery, cargar los barrios cubiertos y sus tarifas/tiempos reales.
 5. En Extras, crear grupos y asociar opciones a cada producto.
+6. En Productos, elegí la imagen desde el dispositivo; el panel la sube a Supabase Storage, muestra una vista previa y guarda su URL al guardar el producto.
 6. Revisar la tienda como cliente. Abrir el negocio desde Configuración solo cuando todo esté correcto.
 
 No se deben aceptar pedidos hasta que existan por lo menos un producto disponible y una zona activa.
+
+## Imágenes de productos
+
+El panel sube las imágenes al bucket público `product-images` de Supabase Storage. El bucket limita el tamaño a 5 MB y acepta JPEG, PNG, WebP y AVIF. Las descargas públicas sirven las imágenes del catálogo; la política de Storage permite cargar archivos únicamente a usuarios autenticados con una fila activa en `public.admins`. El nombre del objeto es aleatorio y no depende del nombre del archivo original.
 
 ## Notificaciones
 
