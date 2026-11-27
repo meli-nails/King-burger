@@ -1,0 +1,10 @@
+project_id = "fruuhaoszcdrknrmrpgh"
+
+[functions.store-api]
+verify_jwt = false
+
+[functions.admin-api]
+verify_jwt = false
+
+[functions.addon-api]
+verify_jwt = false
