@@ -103,7 +103,7 @@
       <div id="deliveryMap" style="height:270px;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#111"></div>
       <div class="notice" id="deliveryCoordinatesNotice">Todavía no seleccionaste un punto de entrega.</div>
     </div>
-    <div class="field"><label for="deliveryZone">Zona de envío *</label><select id="deliveryZone" required><option value="">Seleccioná una zona</option></select></div>
+    <div class="notice"><b>Costo de envío fijo: $1.000.</b> El local revisará tu dirección y confirmará si puede realizar la entrega.</div>
     <div class="field"><label for="addressReference">Piso, departamento o referencia (opcional)</label><input id="addressReference" maxlength="180" placeholder="Casa con portón negro, entre calles…"></div>
     <div class="field"><label>Forma de pago *</label><div style="display:flex;gap:10px;flex-wrap:wrap"><label class="chip"><input type="radio" name="paymentMethod" value="cash" checked> Efectivo</label><label class="chip"><input type="radio" name="paymentMethod" value="transfer"> Transferencia</label></div></div><div id="transferInfo" class="notice hidden"></div>
     <div class="field"><label for="customerNotes">Indicaciones del pedido (opcional)</label><textarea id="customerNotes" maxlength="500" placeholder="Aclaraciones para el local o repartidor"></textarea></div>
@@ -119,7 +119,7 @@
       const STORE_API = `${SUPABASE_URL}/functions/v1/store-api`;
       const $ = (selector) => document.querySelector(selector);
       const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n || 0));
-      const state = { catalog: null, zones: [], category: "all", cart: [], selectedProduct: null, settings: null, deliveryFee: 0, deliveryMap: null, deliveryMarker: null, deliveryPoint: null };
+      const state = { catalog: null, category: "all", cart: [], selectedProduct: null, settings: null, deliveryFee: 1000, deliveryMap: null, deliveryMarker: null, deliveryPoint: null };
       const safe = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
       async function api(action, payload = {}) {
         const res = await fetch(STORE_API, { method: "POST", headers: { "Content-Type": "application/json", apikey: PUBLISHABLE_KEY }, body: JSON.stringify({ action, ...payload }) });
@@ -238,15 +238,13 @@
       function openCheckout() {
         if (!state.cart.length) return;
         $("#cartDrawer").classList.remove("open");
-        if (!state.zones.length) { alert("Todavía no hay zonas de delivery configuradas. Contactá al local."); return; }
-        $("#deliveryZone").innerHTML = '<option value="">Seleccioná una zona</option>' + state.zones.map((z) => `<option value="${z.id}">${safe(z.name)} · ${money(z.delivery_fee)}</option>`).join("");
         $("#checkoutSubtotal").textContent = money(cartSubtotal());
         const ts = state.settings || {};
         $("#transferInfo").innerHTML = ts.transfer_alias || ts.transfer_cbu ? `<b>Datos para transferir</b><br>${ts.transfer_alias ? `Alias: ${safe(ts.transfer_alias)}<br>` : ""}${ts.transfer_holder ? `Titular: ${safe(ts.transfer_holder)}<br>` : ""}${ts.transfer_cbu ? `CBU: ${safe(ts.transfer_cbu)}` : ""}` : "El local todavía no configuró sus datos bancarios.";
-        $("#checkoutDelivery").textContent = "Seleccioná tu zona";
-        $("#checkoutTotal").textContent = money(cartSubtotal());
+        $("#checkoutDelivery").textContent = money(1000);
+        $("#checkoutTotal").textContent = money(cartSubtotal() + 1000);
         $("#checkoutFormWrap").classList.remove("hidden"); $("#checkoutResult").classList.remove("show");
-        setNotice(state.settings?.is_open ? "Solo delivery. Elegí tu zona para conocer el costo del envío." : "El local figura cerrado en este momento. Podés preparar tu carrito, pero el pedido no se podrá confirmar hasta que abra.", !state.settings?.is_open);
+        setNotice(state.settings?.is_open ? "Solo delivery. El envío tiene un costo fijo de $1.000. El local confirmará la cobertura de tu dirección." : "El local figura cerrado en este momento. Podés preparar tu carrito, pero el pedido no se podrá confirmar hasta que abra.", !state.settings?.is_open);
         $("#checkoutModal").classList.add("open");
         initDeliveryMap();
       }
@@ -254,9 +252,6 @@
         event.preventDefault();
         if (!state.cart.length) return;
         if (!state.settings?.is_open) { setNotice("El local está cerrado y no está tomando pedidos.", true); return; }
-        const zoneId = $("#deliveryZone").value;
-        const zone = state.zones.find((z) => z.id === zoneId);
-        if (!zone) { setNotice("Seleccioná una zona de envío válida.", true); return; }
         if (!state.deliveryPoint) { $("#deliveryCoordinatesNotice").classList.add("error"); setNotice("Marcá en el mapa dónde querés recibir el pedido.", true); return; }
         const btn = $("#submitOrder"); btn.disabled = true; btn.textContent = "Registrando pedido…";
         const pending = JSON.parse(localStorage.getItem("kb_pending_order") || "null") || { idempotency_key: crypto.randomUUID(), tracking_token: Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2,"0")).join("") };
@@ -264,7 +259,7 @@
         const payload = {
           customer_name: $("#customerName").value.trim(), customer_phone: $("#customerPhone").value.trim(), customer_email: $("#customerEmail").value.trim() || null,
           delivery_address: $("#deliveryAddress").value.trim(), neighborhood: $("#neighborhood").value.trim(), address_reference: $("#addressReference").value.trim() || null,
-          delivery_zone_id: zoneId, delivery_latitude: state.deliveryPoint.latitude, delivery_longitude: state.deliveryPoint.longitude, delivery_location_accuracy: state.deliveryPoint.accuracy, payment_method: document.querySelector('input[name="paymentMethod"]:checked')?.value || "cash", customer_notes: $("#customerNotes").value.trim() || null,
+          delivery_latitude: state.deliveryPoint.latitude, delivery_longitude: state.deliveryPoint.longitude, delivery_location_accuracy: state.deliveryPoint.accuracy, payment_method: document.querySelector('input[name="paymentMethod"]:checked')?.value || "cash", customer_notes: $("#customerNotes").value.trim() || null,
           items: state.cart.map((item) => ({ product_id: item.productId, product_name: item.name, quantity: item.quantity, notes: item.notes || null, addons: item.addons })),
         };
         try {
@@ -282,8 +277,8 @@
       async function init() {
         $("#year").textContent = new Date().getFullYear(); loadCart();
         try {
-          const [catalog, zones] = await Promise.all([api("catalog"), api("zones")]);
-          state.catalog = catalog; state.zones = zones.zones || []; state.settings = catalog.settings || {};
+          const catalog = await api("catalog");
+          state.catalog = catalog; state.settings = catalog.settings || {};
           reconcileCart();
           renderMenu();
           $("#menuStatus").textContent = state.settings.is_open ? "Pedidos abiertos" : "Menú disponible · Local cerrado";
@@ -303,7 +298,6 @@
       $("#confirmAdd").addEventListener("click", addSelectedProduct);
       document.body.addEventListener("click", (e) => { const b = e.target.closest("[data-close]"); if (b) $("#" + b.dataset.close).classList.remove("open"); });
       $("#cartLines").addEventListener("click", (e) => { const q = e.target.closest("[data-qty]"); const r = e.target.closest("[data-remove]"); if (q) { const i = Number(q.dataset.qty); state.cart[i].quantity += Number(q.dataset.delta); if (state.cart[i].quantity <= 0) state.cart.splice(i,1); saveCart(); } if (r) { state.cart.splice(Number(r.dataset.remove),1); saveCart(); } });
-      $("#deliveryZone").addEventListener("change", () => { const z = state.zones.find((x) => x.id === $("#deliveryZone").value); const fee = Number(z?.delivery_fee || 0); $("#checkoutDelivery").textContent = z ? money(fee) : "Seleccioná tu zona"; $("#checkoutTotal").textContent = money(cartSubtotal() + fee); });
       document.querySelectorAll('input[name="paymentMethod"]').forEach(el => el.addEventListener("change", () => $("#transferInfo").classList.toggle("hidden", document.querySelector('input[name="paymentMethod"]:checked')?.value !== "transfer")));
       $("#useMyLocation").addEventListener("click", () => {
         if (!navigator.geolocation) { setNotice("Este navegador no ofrece geolocalización.", true); return; }
