@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.addon-api]
 verify_jwt = false
+
+[functions.delivery-api]
+verify_jwt = false
