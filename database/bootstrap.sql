@@ -331,6 +331,9 @@ end;
 $function$
 
 
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon, authenticated;
+
 REVOKE ALL ON FUNCTION public.create_order_secure(jsonb,text,text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.create_order_secure(jsonb,text,text) TO service_role;
 REVOKE ALL ON FUNCTION public.take_api_limit(text,integer,integer) FROM PUBLIC, anon, authenticated;
