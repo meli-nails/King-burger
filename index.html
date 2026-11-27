@@ -43,6 +43,7 @@
   @media(max-width:560px){.hero{padding:37px 18px 30px;grid-template-columns:1fr;gap:4px}.hero h1{font-size:clamp(78px,21vw,116px);margin:24px 0 18px}.hero p{font-size:15px}.hero-actions{gap:8px}.hero-actions .primary,.hero-actions .secondary{font-size:13px;padding:13px 14px}.hero-art{min-height:260px;margin-top:4px}.burger-emoji{font-size:190px}.hero-crown{font-size:63px;top:-2%}.hero-burst{left:2%;bottom:8%;font-size:23px}.art-label{bottom:3%;font-size:13px}.section{padding:35px 0}.section-head h2{font-size:45px}.grid{grid-template-columns:1fr;gap:14px}.product{min-height:174px;grid-template-columns:1.08fr .92fr}.product-art{min-height:170px}.product-body{padding:13px 11px}.product h3{font-size:29px}.product p{font-size:12px}.price{font-size:24px}.nav{height:62px}.brand{font-size:19px}.brand-mark{width:38px;height:38px}}
 
   
+.burger-svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 13px 10px #000b)}.hero-art .burger-svg{width:115%;height:115%;max-width:370px;max-height:370px}.burger-placeholder{display:grid;place-items:center;width:100%;height:100%;padding:5px}.burger-placeholder .burger-svg{max-width:100%;max-height:100%}
 /* Identidad visual King Burger — acabado móvil */
 .mobile-menu-button{display:none;border:0;background:transparent;color:#fff;padding:7px}
 .mobile-menu-button svg,.cart-button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -149,7 +150,7 @@
         <div class="hero-delivery"><span class="delivery-icon">♨</span><span><b>DELIVERY</b><small>EL REINO LLEGA A TU CASA</small></span></div>
       </div>
       <div class="hero-art" id="heroArt" aria-label="King Burger, hamburguesas con cheddar">
-        <div class="hero-crown">♛</div><div class="burger-emoji">🍔</div><img class="hero-burger-image hidden" id="heroBurgerImage" alt="Hamburguesa King Burger">
+        <div class="hero-crown">♛</div><div class="burger-emoji" id="heroBurgerArt"></div><img class="hero-burger-image hidden" id="heroBurgerImage" alt="Hamburguesa King Burger">
         <span class="art-label">KING SIZE · KING TASTE</span>
         <span class="hero-burst">100%<small>SABOR REAL</small></span>
       </div>
@@ -212,6 +213,30 @@
       const STORE_API = `${SUPABASE_URL}/functions/v1/store-api`;
       const $ = (selector) => document.querySelector(selector);
       const money = (n) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(Number(n || 0));
+      function burgerIllustration(prefix="burger"){
+        const id=String(prefix).replace(/[^a-z0-9_-]/gi,"");
+        return `<svg class="burger-svg" viewBox="0 0 320 250" role="img" aria-label="Ilustración de hamburguesa" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="${id}-bunTop" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffd46a"/><stop offset=".5" stop-color="#d98221"/><stop offset="1" stop-color="#8b3b0c"/></linearGradient>
+            <linearGradient id="${id}-bunBottom" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f3b64e"/><stop offset="1" stop-color="#8b3c0d"/></linearGradient>
+            <linearGradient id="${id}-meat" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#67341e"/><stop offset=".5" stop-color="#28130c"/><stop offset="1" stop-color="#120b07"/></linearGradient>
+            <linearGradient id="${id}-cheese" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff06a"/><stop offset=".55" stop-color="#ffb900"/><stop offset="1" stop-color="#e66b00"/></linearGradient>
+            <linearGradient id="${id}-lettuce" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c7ff32"/><stop offset="1" stop-color="#2d8d0a"/></linearGradient>
+          </defs>
+          <ellipse cx="160" cy="229" rx="119" ry="12" fill="#000" opacity=".42"/>
+          <path d="M45 185 Q64 171 91 180 Q113 164 137 177 Q162 160 188 177 Q215 164 235 180 Q262 168 278 187 L269 218 Q266 229 250 229 H71 Q54 228 51 215Z" fill="url(#${id}-bunBottom)" stroke="#74300b" stroke-width="3"/>
+          <path d="M48 180 Q65 162 88 173 Q110 151 135 169 Q157 150 181 168 Q206 151 229 171 Q255 159 274 181 L266 194 Q244 185 224 193 Q202 181 180 192 Q155 180 132 192 Q107 181 86 194 Q65 185 52 196Z" fill="url(#${id}-lettuce)" stroke="#287c08" stroke-width="3"/>
+          <path d="M62 169 Q82 156 102 166 Q130 151 153 164 Q181 151 206 165 Q235 154 260 170" fill="none" stroke="#dcff5a" stroke-width="8" stroke-linecap="round"/>
+          <path d="M58 157 Q95 143 128 153 Q162 141 194 153 Q228 142 263 158" fill="none" stroke="#cf281d" stroke-width="15" stroke-linecap="round"/>
+          <path d="M53 137 Q82 119 110 133 Q145 117 170 134 Q203 116 229 133 Q253 122 270 140 Q266 159 247 159 H73 Q55 157 53 137Z" fill="url(#${id}-meat)" stroke="#120a06" stroke-width="4"/>
+          <path d="M49 122 L273 122 L260 151 Q253 161 239 153 L219 141 L202 163 Q194 170 185 158 L166 139 L151 167 Q144 176 134 164 L113 143 L96 157 Q87 164 80 154Z" fill="url(#${id}-cheese)" stroke="#c66a00" stroke-width="2"/>
+          <path d="M73 112 Q100 95 130 109 Q155 96 181 108 Q210 94 239 111 Q262 103 274 118" fill="none" stroke="#421709" stroke-width="19" stroke-linecap="round"/>
+          <path d="M70 110 Q91 84 116 105 Q131 121 147 103 Q164 86 181 105 Q199 122 219 103 Q237 88 260 111" fill="none" stroke="#a83c19" stroke-width="13" stroke-linecap="round"/>
+          <path d="M45 110 C39 65 82 32 160 29 C239 31 282 66 276 110 Q273 129 247 132 H72 Q49 130 45 110Z" fill="url(#${id}-bunTop)" stroke="#8d410e" stroke-width="4"/>
+          <path d="M62 100 Q80 55 157 49 Q236 51 260 101" fill="none" stroke="#ffdf8a" stroke-width="7" stroke-linecap="round" opacity=".55"/>
+          <g fill="#fff1bd" stroke="#d08a36" stroke-width="1.1"><ellipse cx="96" cy="75" rx="5" ry="2.4" transform="rotate(-25 96 75)"/><ellipse cx="126" cy="59" rx="5" ry="2.4" transform="rotate(17 126 59)"/><ellipse cx="158" cy="53" rx="5" ry="2.4"/><ellipse cx="190" cy="60" rx="5" ry="2.4" transform="rotate(-18 190 60)"/><ellipse cx="222" cy="76" rx="5" ry="2.4" transform="rotate(27 222 76)"/><ellipse cx="78" cy="94" rx="5" ry="2.4" transform="rotate(13 78 94)"/><ellipse cx="113" cy="89" rx="5" ry="2.4"/><ellipse cx="151" cy="81" rx="5" ry="2.4" transform="rotate(-20 151 81)"/><ellipse cx="185" cy="85" rx="5" ry="2.4" transform="rotate(21 185 85)"/><ellipse cx="242" cy="96" rx="5" ry="2.4"/></g>
+        </svg>`;
+      }
       const state = { catalog: null, category: "all", cart: [], selectedProduct: null, settings: null, deliveryFee: 1000, deliveryMap: null, deliveryMarker: null, deliveryPoint: null };
       const safe = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
       async function api(action, payload = {}) {
@@ -254,6 +279,7 @@
         $("#cartLines").innerHTML = state.cart.map((item, i) => `<div class="cart-line"><div><strong>${safe(item.name)}</strong><small>${item.addonNames.length ? safe(item.addonNames.join(", ")) : "Sin adicionales"}${item.notes ? ` · ${safe(item.notes)}` : ""}</small><div class="qty"><button data-qty="${i}" data-delta="-1">−</button><b>${item.quantity}</b><button data-qty="${i}" data-delta="1">+</button><button data-remove="${i}" style="width:auto;padding:0 8px;color:#ff9292">Quitar</button></div></div><strong>${money(item.unitPrice * item.quantity)}</strong></div>`).join("");
       }
       function renderMenu() {
+         const heroArtFallback=$("#heroBurgerArt");if(heroArtFallback)heroArtFallback.innerHTML=burgerIllustration("hero-burger");
          const heroProduct=(state.catalog?.products||[]).find(p=>p.image_url);
          const heroImage=$("#heroBurgerImage");
          if(heroProduct&&heroImage){heroImage.src=heroProduct.image_url;heroImage.alt=heroProduct.name;heroImage.classList.remove("hidden");$("#heroArt").classList.add("has-image");}
@@ -264,7 +290,7 @@
           $("#productGrid").innerHTML = '<div class="empty"><strong>La carta está por llegar.</strong>El local todavía no cargó productos disponibles. Volvé a consultar pronto.</div>';
           return;
         }
-        $("#productGrid").innerHTML = products.map((p) => `<article class="product"><div class="product-art">${p.image_url ? `<img src="${safe(p.image_url)}" alt="${safe(p.name)}" loading="lazy">` : "🍔"}${p.is_featured ? '<span class="tag">Favorito</span>' : ""}</div><div class="product-body"><h3>${safe(p.name)}</h3><p>${safe(p.description || "Preparada al momento. Personalizala a tu gusto.")}</p><div class="product-foot"><span class="price">${money(p.price)}</span><button class="add" data-product="${p.id}" aria-label="Agregar ${safe(p.name)}"><span aria-hidden="true">🛒</span> Agregar</button></div></div></article>`).join("");
+        $("#productGrid").innerHTML = products.map((p) => `<article class="product"><div class="product-art">${p.image_url ? `<img src="${safe(p.image_url)}" alt="${safe(p.name)}" loading="lazy">` : `<div class="burger-placeholder">${burgerIllustration("product-"+p.id.replace(/[^a-z0-9]/gi,""))}</div>`}${p.is_featured ? '<span class="tag">Favorito</span>' : ""}</div><div class="product-body"><h3>${safe(p.name)}</h3><p>${safe(p.description || "Preparada al momento. Personalizala a tu gusto.")}</p><div class="product-foot"><span class="price">${money(p.price)}</span><button class="add" data-product="${p.id}" aria-label="Agregar ${safe(p.name)}"><span aria-hidden="true">🛒</span> Agregar</button></div></div></article>`).join("");
       }
       function openProduct(productId) {
         const product = state.catalog.products.find((p) => p.id === productId);
