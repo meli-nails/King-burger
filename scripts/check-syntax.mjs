@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { Script } from "node:vm";
 
-const pages = ["index.html", "admin.html", "seguimiento.html"];
+const pages = ["index.html", "admin.html", "seguimiento.html", "delivery.html"];
 let errors = 0;
 
 for (const page of pages) {
