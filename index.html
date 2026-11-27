@@ -279,7 +279,6 @@
         $("#cartLines").innerHTML = state.cart.map((item, i) => `<div class="cart-line"><div><strong>${safe(item.name)}</strong><small>${item.addonNames.length ? safe(item.addonNames.join(", ")) : "Sin adicionales"}${item.notes ? ` · ${safe(item.notes)}` : ""}</small><div class="qty"><button data-qty="${i}" data-delta="-1">−</button><b>${item.quantity}</b><button data-qty="${i}" data-delta="1">+</button><button data-remove="${i}" style="width:auto;padding:0 8px;color:#ff9292">Quitar</button></div></div><strong>${money(item.unitPrice * item.quantity)}</strong></div>`).join("");
       }
       function renderMenu() {
-         const heroArtFallback=$("#heroBurgerArt");if(heroArtFallback)heroArtFallback.innerHTML=burgerIllustration("hero-burger");
          const heroProduct=(state.catalog?.products||[]).find(p=>p.image_url);
          const heroImage=$("#heroBurgerImage");
          if(heroProduct&&heroImage){heroImage.src=heroProduct.image_url;heroImage.alt=heroProduct.name;heroImage.classList.remove("hidden");$("#heroArt").classList.add("has-image");}
@@ -438,6 +437,7 @@
       $("#clearDeliveryLocation").addEventListener("click", clearDeliveryPoint);
       $("#checkoutForm").addEventListener("submit", submitOrder);
       $("#finishOrder").addEventListener("click", () => { $("#checkoutModal").classList.remove("open"); $("#checkoutForm").reset(); });
+      $("#heroBurgerArt").innerHTML=burgerIllustration("hero-burger");
       init();
     })();
   </script>
