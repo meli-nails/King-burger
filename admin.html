@@ -81,9 +81,9 @@
   const $=s=>document.querySelector(s);
   const money=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0}).format(Number(n||0));
   const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const labels={pending:"Pendiente",confirmed:"Confirmado",preparing:"En preparación",ready:"Listo",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado"};
+  const labels={pending:"Nuevo",confirmed:"Confirmado",preparing:"En preparación",ready:"Listo para entregar",on_the_way:"En camino",delivered:"Entregado",cancelled:"Cancelado"};
   const adminTransitions={pending:["confirmed","cancelled"],confirmed:["preparing","cancelled"],preparing:["ready","cancelled"],ready:["cancelled"],on_the_way:["cancelled"],delivered:[],cancelled:[]};
-  const workflowHints={pending:"Siguiente paso: confirmá el pedido. Todavía no aparece para el repartidor.",confirmed:'Siguiente paso: cocina debe marcar "En preparación".',preparing:'Cuando esté preparado, cambialo a "Listo".',ready:"Pedido listo: ahora podés asignar un repartidor. El repartidor debe iniciar el recorrido desde delivery.html.",on_the_way:"El repartidor ya inició el viaje. Su GPS alimenta el mapa del cliente.",delivered:"Entrega completada.",cancelled:"Este pedido está cancelado."};
+  const workflowHints={pending:"Revisá los productos, la dirección y el pago. Después confirmá el pedido.",confirmed:"Cuando cocina comience a prepararlo, tocá Enviar a cocina.",preparing:"Cuando la hamburguesa esté preparada y lista para salir, tocá Marcar como listo.",ready:"Elegí un repartidor para que retire el pedido y lo lleve al cliente.",on_the_way:"El repartidor ya inició la entrega. Su ubicación puede verse desde el seguimiento del pedido.",delivered:"Entrega completada. Este pedido ya está finalizado.",cancelled:"Este pedido fue cancelado."};
   const state={session:null,admin:null,products:[],categories:[],addons:[],options:[],zones:[],settings:null,previewUrl:null,drivers:[]};
   function toast(message){const el=$("#toast");el.textContent=message;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),3300);}
   function setLoginError(message){$("#loginError").textContent=message;$("#loginError").classList.add("show");}
