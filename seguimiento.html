@@ -21,7 +21,7 @@
       <h3 style="font-size:14px;margin:28px 0 8px">Historial</h3><div class="timeline" id="history"></div></div></section></main>
 <footer class="footer">© <span id="year"></span> King Burger · <a href="index.html">Volver a la tienda</a></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.91.0"></script>
 <script>
 (() => {
   const API = "https://fruuhaoszcdrknrmrpgh.supabase.co/functions/v1/store-api";
@@ -54,8 +54,8 @@
     } catch { $("#courierEta").textContent = "El repartidor está en camino. Consultá nuevamente en unos instantes."; }
   }
   function updateTrackingMap(o) {
-    const hasDestination = Number.isFinite(Number(o.delivery_latitude)) && Number.isFinite(Number(o.delivery_longitude));
-    const hasCourier = Number.isFinite(Number(o.driver_location_latitude)) && Number.isFinite(Number(o.driver_location_longitude));
+    const hasDestination = o.delivery_latitude != null && o.delivery_longitude != null && Number.isFinite(Number(o.delivery_latitude)) && Number.isFinite(Number(o.delivery_longitude));
+    const hasCourier = o.driver_location_latitude != null && o.driver_location_longitude != null && Number.isFinite(Number(o.driver_location_latitude)) && Number.isFinite(Number(o.driver_location_longitude));
     if (!hasDestination) return;
     $("#liveTracking").style.display = o.order_status === "on_the_way" || o.order_status === "delivered" ? "block" : "none";
     if (!$("#liveTracking").style.display || !window.L) return;
@@ -83,10 +83,15 @@
       .on("broadcast",{event:"location"},({payload}) => {
         if (!payload || !Number.isFinite(Number(payload.latitude)) || !Number.isFinite(Number(payload.longitude))) return;
         const position = {latitude:payload.latitude,longitude:payload.longitude,updated_at:payload.updated_at};
-        if (courierMarker) courierMarker.setLatLng([Number(position.latitude),Number(position.longitude)]);
+        const point = [Number(position.latitude),Number(position.longitude)];
+        if (!courierMarker) courierMarker = L.circleMarker(point,{radius:9,color:"#fff",weight:2,fillColor:"#ffc94a",fillOpacity:1}).addTo(map).bindPopup("Repartidor");
+        else courierMarker.setLatLng(point);
         $("#courierLiveBadge").textContent = "GPS en vivo";
         const destination = destinationMarker?.getLatLng();
-        if (destination) routeBetween([Number(position.latitude),Number(position.longitude)],[destination.lat,destination.lng]);
+        if (destination) {
+          routeBetween(point,[destination.lat,destination.lng]);
+          map.fitBounds(L.latLngBounds([point,[destination.lat,destination.lng]]).pad(.25),{maxZoom:16});
+        }
       }).subscribe();
   }
   async function load(token, silent = false) {
