@@ -114,7 +114,7 @@
     const canAssign=current==="ready"&&!o.assigned_driver_id;
     const canCancel=(adminTransitions[current]||[]).includes("cancelled");
     const driverOptions=state.drivers.filter(d=>d.is_active).map(d=>`<option value="${d.user_id}" ${d.user_id===o.assigned_driver_id?"selected":""}>${esc(d.display_name)}</option>`).join("");
-     const canJoinRun=current==="ready"&&!o.assigned_driver_id;
+     const canJoinRun=current==="ready"&&!o.assigned_driver_id&&o.delivery_latitude!=null&&o.delivery_longitude!=null;
      const runCheckbox=canJoinRun?'<label class="inline-check"><input type="checkbox" data-run-order="'+o.id+'"> Incluir en un recorrido</label>':"";
     const action=nextStatus?`<button class="btn primary-action" data-update-order="${o.id}" data-next-status="${nextStatus}">${nextLabel} →</button>`:"";
     const assign=canAssign?`<div class="order-next"><b>El pedido está listo.</b> Elegí quién lo va a llevar al cliente.</div><div class="order-actions"><select data-driver-select="${o.id}" aria-label="Elegir repartidor"><option value="">Elegir repartidor…</option>${driverOptions}</select><button class="btn primary-action" data-assign-driver="${o.id}">Asignar repartidor</button></div>`:"";
