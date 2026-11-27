@@ -63,6 +63,14 @@ No se deben aceptar pedidos hasta que existan por lo menos un producto disponibl
 
 El panel sube las imágenes al bucket público `product-images` de Supabase Storage. El bucket limita el tamaño a 5 MB y acepta JPEG, PNG, WebP y AVIF. Las descargas públicas sirven las imágenes del catálogo; la política de Storage permite cargar archivos únicamente a usuarios autenticados con una fila activa en `public.admins`. El nombre del objeto es aleatorio y no depende del nombre del archivo original.
 
+## GPS y mapas
+
+- El cliente marca manualmente el punto exacto en Leaflet; también puede usar geolocalización del navegador.
+- El repartidor debe permitir el GPS y mantener `delivery.html` activa durante la entrega. Los navegadores móviles pueden suspender la geolocalización cuando la pestaña queda en segundo plano o el teléfono se bloquea.
+- La posición se comparte por Supabase Realtime Broadcast y se persiste en PostgreSQL para que el cliente pueda consultar el último punto.
+- La vista de ruta y el tiempo estimado usan temporalmente el servidor público de demostración OSRM y cartografía de CARTO/OpenStreetMap. Antes de un volumen comercial sostenido, conviene contratar un proveedor de rutas con SLA y revisar las políticas de uso de los tiles. El botón de Google Maps permite abrir navegación externa.
+- El tiempo de llegada es orientativo; no incorpora datos de tráfico en tiempo real.
+
 ## Notificaciones
 
 ### WhatsApp
