@@ -136,9 +136,6 @@ declare
   v_order_item_id uuid; v_option_id uuid; v_option_name text;
   v_option_price numeric(12,2); v_addon_id uuid; v_item_count integer;
 begin
-  if current_setting('request.jwt.claim.role', true) is distinct from 'service_role' then
-    raise exception using errcode = '42501', message = 'not_authorized';
-  end if;
   if p_payload is null or jsonb_typeof(p_payload) <> 'object' then
     raise exception using errcode = '22023', message = 'invalid_payload';
   end if;
@@ -320,9 +317,6 @@ CREATE OR REPLACE FUNCTION public.take_api_limit(p_bucket text, p_max_hits integ
 AS $function$
 declare v_hits integer;
 begin
-  if current_setting('request.jwt.claim.role', true) is distinct from 'service_role' then
-    raise exception using errcode = '42501', message = 'not_authorized';
-  end if;
   if p_bucket is null or length(p_bucket) < 8 or length(p_bucket) > 180
      or p_max_hits < 1 or p_max_hits > 1000
      or p_window_seconds < 1 or p_window_seconds > 86400 then
