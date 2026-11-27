@@ -456,4 +456,18 @@ SELECT id,'owner',true FROM auth.users
 WHERE lower(email)=lower('soy.ibarra37@gmail.com')
 ON CONFLICT (user_id) DO UPDATE SET role='owner',is_active=true;
 
+
+-- Public product images; only active admins may upload.
+INSERT INTO storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+VALUES ('product-images','product-images',true,5242880,ARRAY['image/jpeg','image/png','image/webp','image/avif'])
+ON CONFLICT (id) DO UPDATE SET public=excluded.public,file_size_limit=excluded.file_size_limit,allowed_mime_types=excluded.allowed_mime_types;
+
+DROP POLICY IF EXISTS "King Burger admins upload product images" ON storage.objects;
+CREATE POLICY "King Burger admins upload product images"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id='product-images'
+  AND EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id=(SELECT auth.uid()) AND a.is_active=true)
+);
+
 COMMIT;
