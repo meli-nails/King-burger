@@ -76,7 +76,7 @@
     }
     setTimeout(() => map && map.invalidateSize(),100);
   }
-  async function subscribeTracking(token, topic) {
+  async function subscribeTracking(token, topic, destinationPoint) {
     if (!window.supabase || !topic || trackingChannel) return;
     realtimeClient = window.supabase.createClient(SUPABASE_URL, TRACK_KEY);
     trackingChannel = realtimeClient.channel(topic,{config:{private:false}})
@@ -84,8 +84,21 @@
         if (!payload || !Number.isFinite(Number(payload.latitude)) || !Number.isFinite(Number(payload.longitude))) return;
         const position = {latitude:payload.latitude,longitude:payload.longitude,updated_at:payload.updated_at};
         const point = [Number(position.latitude),Number(position.longitude)];
+        // The customer may have opened the tracking page while the order was still pending.
+        // Initialize the map on the first GPS broadcast instead of waiting for the 20s poll.
+        if (!map) {
+          $("#liveTracking").style.display = "block";
+          initTrackingMap();
+          if (destinationPoint?.every(Number.isFinite)) {
+            destinationMarker = L.marker(destinationPoint).addTo(map).bindPopup("Tu dirección de entrega");
+            map.setView(destinationPoint,15);
+          }
+        }
         if (!courierMarker) courierMarker = L.circleMarker(point,{radius:9,color:"#fff",weight:2,fillColor:"#ffc94a",fillOpacity:1}).addTo(map).bindPopup("Repartidor");
         else courierMarker.setLatLng(point);
+        $("#orderStatus").textContent = labels.on_the_way;
+        const activeStep = sequence.indexOf("on_the_way");
+        $("#progress").innerHTML = sequence.map((step,index)=>`<span class="${activeStep>=index?"done":""}"></span>`).join("");
         $("#courierLiveBadge").textContent = "GPS en vivo";
         const destination = destinationMarker?.getLatLng();
         if (destination) {
@@ -110,7 +123,7 @@
       $("#history").innerHTML=history.length ? history.map(h=>`<div class="event"><b>${esc(labels[h.new_status]||h.new_status)}</b><small>${new Date(h.created_at).toLocaleString("es-AR",{dateStyle:"medium",timeStyle:"short"})}${h.note ? ` · ${esc(h.note)}`:""}</small></div>`).join("") : '<p class="muted">Todavía no hay novedades.</p>';
       $("#result").classList.add("show");
       updateTrackingMap(o);
-      subscribeTracking(token, o.realtime_topic);
+      subscribeTracking(token, o.realtime_topic, [Number(o.delivery_latitude),Number(o.delivery_longitude)]);
       if (!pollingTimer) pollingTimer = setInterval(() => { if (currentToken) load(currentToken, true); }, 20000);
     } catch(e) { $("#error").textContent=e.message; $("#error").classList.add("show"); }
     finally { if (!silent) { button.disabled=false; button.textContent="Consultar"; } }
